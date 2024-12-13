@@ -15,4 +15,7 @@ for i in range (0, 5):
         if c[l]==max(c):
             A[l][i]=B[i]
     c=[]
-print (A)
+for i in range(0, 7):
+    for j in range(0, 5):
+        print (A[i][j],end=' ')
+    print()
