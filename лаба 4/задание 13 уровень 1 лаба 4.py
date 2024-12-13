@@ -19,4 +19,7 @@ for i in range(len(A)):
 for k in range(0, 5):
     B[k][3]=A[k][f]
     B[k][f]=A[k][3]
-print(B)
+for i in range (0, 5):
+    for j in range (0, 5):
+        print(B[i][j], end=' ')
+    print()
