@@ -6,14 +6,15 @@ A=[[1, 25, 44, 31, 7],
    [20, 49, 51, 26, 65],
    [42, 56, 76, 43, 12],
    [26, 32, 58, 73, 15]]
-B=[1, 2, 3, 4, 5]
+B=[1, 2, 3, 4, 100]
 c=[]
 for i in range (0, 5):
     for k in range(0, 7):
         c.append(A[k][i])
     for l in range(0, 7):
         if c[l]==max(c):
-            A[l][i]=B[i]
+            if B[i]>A[l][i]:
+                A[l][i]=B[i]
     c=[]
 for i in range(0, 7):
     for j in range(0, 5):
