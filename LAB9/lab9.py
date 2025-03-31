@@ -1,5 +1,5 @@
 #Если максимальный элемент массива больше суммы элементов массива, заменить его нулем, иначе - удвоить.
-f = open(r"c:\Users\m2406454\Desktop\LAB9\arrayin.txt", 'r')
+f = open(r"arrayin.txt", 'r')
 e = f.read()
 a = e.split(' ')
 c=0
@@ -12,7 +12,7 @@ for i in range(len(a)):
             a[i]=0
         else:
             a[i]=2*a[i]
-f = open(r"c:\Users\m2406454\Desktop\LAB9\arrayout.txt", 'w')
+f = open(r"arrayout.txt", 'w')
 for i in a:
     i=str(i)
     f.write(i + ' ')
