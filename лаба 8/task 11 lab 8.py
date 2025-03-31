@@ -1,3 +1,4 @@
+#Список фамилий, разделенных запятыми, задан в произвольном порядке. Упорядочить его по алфавиту.
 import re
 from collections import defaultdict
 def compress_text(input_text):
