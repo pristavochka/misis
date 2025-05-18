@@ -33,18 +33,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 fig, ax = plt.subplots()
-x = np.linspace(0, 10, 100)
-ax.plot(x, func(x))
-plt.show()
-sizes = np.random.uniform(15, 80, len(x)-1)
-colors = np.random.uniform(15, 80, len(x)-1)
-fig, ax = plt.subplots()
 
-print(data, len(data[0]),len(data[1]))
+x_vals = np.linspace(0, 10, 100)
+ax.plot(x_vals, func(x_vals), label='Функция y = x²')
 
-ax.scatter(data[0], data[1], s = sizes, c = colors, vmin=0, vmax=100)
+
+sizes = np.random.uniform(15, 80, len(data[0]))
+colors = np.random.uniform(15, 80, len(data[0]))
+
+scatter = ax.scatter(data[0], data[1], s=sizes, c=colors, 
+                    vmin=0, vmax=100, label='Градиентный спуск')
 
 ax.set(xlim=(0, 8), xticks=np.arange(0, 10),
-       ylim=(0, 8), yticks=np.arange(0, 10))
+       ylim=(0, 8), yticks=np.arange(0, 10),
+       xlabel='x', ylabel='y')
+ax.legend()
 
 plt.show()
