@@ -1,0 +1,35 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.svm import SVR
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.metrics import mean_squared_error
+x_min, x_max = -2, 2
+x = np.linspace(x_min, x_max, 100).reshape(-1, 1)
+f_x = np.exp(x) + x**3 - 2*x
+e = np.array([random.uniform(-1, 1) for _ in range(100)]).reshape(-1, 1)
+y = f_x + e
+models = {
+    "Gradient Boosting": GradientBoostingRegressor(n_estimators=100, max_depth=3),
+    "SVR": SVR(kernel='rbf', C=100, gamma=0.1),
+    "Kernel Ridge": KernelRidge(kernel='rbf', alpha=0.1, gamma=0.1)
+}
+results = {}
+for name, model in models.items():
+    model.fit(x, y.ravel())
+    y_pred = model.predict(x)
+    mse = mean_squared_error(f_x, y_pred)
+    results[name] = {"y_pred": y_pred, "MSE": mse}
+plt.figure(figsize=(15, 5))
+for i, (name, data) in enumerate(results.items(), 1):
+    plt.subplot(1, 3, i)
+    plt.scatter(x, y, color='blue', s=10, label='Исходные точки')
+    plt.plot(x, f_x, color='green', linewidth=2, label='Исходная функция')
+    plt.plot(x, data["y_pred"], color='red', linewidth=2, label='Предсказанная функция')
+    plt.title(f'{name}\nMSE: {data["MSE"]:.3f}')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+plt.tight_layout()
+plt.show()
