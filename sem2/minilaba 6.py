@@ -1,52 +1,40 @@
-from math import sin, cos
-
-x = 3
-
-speed = 0.01
-
-epochs = 100
-
-
-def difffunc(x):
-    y = 2*x
-    return y
-
-
-def func(x):
-    y = x**2
-    return y
-
-
-def gradiendDescend(x, speed, epochs):
-    xList = []
-    yList = []
-    for i in range(1, epochs):
-        x = x - speed * difffunc(x)
-        xList.append(x)
-        yList.append(func(x))
-    return xList, yList
-
-
-data = gradiendDescend(x, speed, epochs)
-
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
-fig, ax = plt.subplots()
+def gradspusk(func=lambda x: np.exp(x**2),
+                    diffFunc=lambda x: 2*x*np.exp(x**2),
+                    x0=3,
+                    speed=0.1,
+                    epochs=1000):
+    x = x0
+    x_list = [x]
+    y_list = [func(x)]
+    
+    for i in range(epochs):
+        x = x - speed * diffFunc(x)
+        x_list.append(x)
+        y_list.append(func(x))
+    
+    return x_list, y_list
 
-x_vals = np.linspace(0, 10, 100)
-ax.plot(x_vals, func(x_vals), label='Функция y = x²')
+
+func = lambda x: np.exp(x**2)
+diffFunc = lambda x: 2*x*np.exp(x**2)
 
 
-sizes = np.random.uniform(15, 80, len(data[0]))
-colors = np.random.uniform(15, 80, len(data[0]))
+x0 = 1
+speed = 0.1
+epochs = 1000
+x_list, y_list = gradspusk(func, diffFunc, x0, speed, epochs)
 
-scatter = ax.scatter(data[0], data[1], s=sizes, c=colors, 
-                    vmin=0, vmax=100, label='Градиентный спуск')
 
-ax.set(xlim=(0, 8), xticks=np.arange(0, 10),
-       ylim=(0, 8), yticks=np.arange(0, 10),
-       xlabel='x', ylabel='y')
-ax.legend()
+x = np.linspace(-1, 1, 1000)
+y = func(x)
 
+
+plt.plot(x, y, label='f(x)', color='blue')
+plt.scatter(x_list, y_list, color='red',s=20)
+plt.scatter(x_list[-1],y_list[-1],marker='*',s=200)
+plt.legend()
+plt.grid(True)
 plt.show()
