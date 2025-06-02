@@ -2,110 +2,93 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
-from keras.optimizers import Adam
-
-
-
-def generate_datasets():
-    dataset = []
-
-
-    X, y = datasets.make_circles(n_samples=500, factor=0.5, noise=0.05, random_state=30)
-    dataset.append(('Circles', X, y))
-
-
-    X, y = datasets.make_moons(n_samples=500, noise=0.05, random_state=30)
-    dataset.append(('Moons', X, y))
-
-
-    X, y = datasets.make_blobs(n_samples=500, cluster_std=[1.0, 0.5], random_state=30, centers=2)
-    dataset.append(('Varied Blobs', X, y))
-
-
-    X, y = datasets.make_blobs(n_samples=500, random_state=170, centers=2)
-    transformation = [[0.6, -0.6], [-0.4, 0.8]]
-    dataset.append(('Anisotropic', np.dot(X, transformation), y))
-
-
-    X, y = datasets.make_blobs(n_samples=500, random_state=30, centers=2)
-    dataset.append(('Overlapping', X, y))
-
-    return dataset
-
-
-
-models = [
-    ('SVM (RBF)', SVC(kernel='rbf', C=1.0)),
-    ('Decision Tree', DecisionTreeClassifier(max_depth=5, criterion='entropy', random_state=42)),
-    ('MLP Keras', None)  # Будет переопределена
+from sklearn.metrics import accuracy_score
+X_circle, y_circle = datasets.make_circles(n_samples=500, factor=0.5, noise=0.05, random_state=30)
+X_moon, y_moon = datasets.make_moons(n_samples=500, noise=0.05, random_state=30)
+X_varied, y_varied = datasets.make_blobs(n_samples=500, cluster_std=[1.0, 0.5], random_state=30, centers=2)
+X_aniso, y_aniso = datasets.make_blobs(n_samples=500, random_state=170, centers=2)
+X_aniso = np.dot(X_aniso, [[0.6, -0.6], [-0.4, 0.8]])
+X_blob, y_blob = datasets.make_blobs(n_samples=500, random_state=30, centers=2)
+dataset_configs = [
+    (X_circle, y_circle),
+    (X_moon, y_moon),
+    (X_varied, y_varied),
+    (X_aniso, y_aniso),
+    (X_blob, y_blob)
 ]
-
-
-fig, axes = plt.subplots(5, 3, figsize=(20, 25))
-plt.subplots_adjust(wspace=0.3, hspace=0.4)
-
-
-for row, (name, X, y) in enumerate(generate_datasets()):
-
-    X = StandardScaler().fit_transform(X)
-
-
+dataset_names = ['Circles', 'Moons', 'Varied Blobs', 'Anisotropic', 'Simple Blobs']
+accuracies = np.zeros((5, 3))
+classifiers = [
+    MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', max_iter=1000, random_state=42, early_stopping=True),
+    GaussianNB(),
+    SVC(kernel='rbf', C=1.0, gamma='auto')
+]
+classifier_names = ['MLP', 'Naive Bayes', 'SVM']
+for row_idx, (X, y) in enumerate(dataset_configs):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100),
-                         np.linspace(y_min, y_max, 100))
-
-    for col, (model_name, model) in enumerate(models):
-        ax = axes[row, col]
-
-
-        if model_name == 'MLP Keras':
-            model = Sequential([
-                Dense(64, activation='relu', input_shape=(2,)),
-                Dropout(0.3),
-                Dense(32, activation='relu'),
-                Dense(1, activation='sigmoid')
-            ])
-            model.compile(optimizer=Adam(0.001),
-                          loss='binary_crossentropy',
-                          metrics=['accuracy'])
-            model.fit(X_train, y_train, epochs=20, batch_size=32, verbose=0)
-            Z = model.predict(np.c_[xx.ravel(), yy.ravel()]) > 0.5
-        else:
-            model.fit(X_train, y_train)
-            Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
-
-
+    for col_idx, clf in enumerate(classifiers):
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        accuracies[row_idx, col_idx] = accuracy_score(y_test, y_pred)
+fig1, axes = plt.subplots(5, 3, figsize=(18, 25))
+plt.subplots_adjust(wspace=0.3, hspace=0.4)
+markers = ['x', 'o']
+cmap = plt.cm.bwr
+for row_idx, (X, y) in enumerate(dataset_configs):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
+    for col_idx, clf in enumerate(classifiers):
+        ax = axes[row_idx, col_idx]
+        clf.fit(X_train, y_train)
+        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
         Z = Z.reshape(xx.shape)
-        ax.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
-
-
-        ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='coolwarm', edgecolors='k', s=40)
-
-
-        y_pred = model.predict(X_test)
-        incorrect = (y_pred != y_test)
-        ax.scatter(X_test[0], X_test[1],
-                   color='red', marker='x', s=100, linewidth=2)
-
-
-        ax.set_xlim(xx.min(), xx.max())
-        ax.set_ylim(yy.min(), yy.max())
-        ax.set_xticks([])
-        ax.set_yticks([])
-
-        if row == 0:
-            ax.set_title(model_name, fontsize=14, pad=20)
-        if col == 0:
-            ax.set_ylabel(name, rotation=0, fontsize=12, labelpad=40)
-
-plt.suptitle("Сравнение методов классификации на различных наборах данных", y=0.99, fontsize=16)
+        ax.contourf(xx, yy, Z, alpha=0.2, cmap=cmap)
+        for class_idx, marker in enumerate(markers):
+            ax.scatter(X_train[y_train == class_idx, 0],
+                      X_train[y_train == class_idx, 1],
+                      marker=marker,
+                      c='navy',
+                      alpha=0.6,
+                      edgecolor='none')
+        y_pred = clf.predict(X_test)
+        for i in range(len(X_test)):
+            true_class = y_test[i]
+            color = 'limegreen' if y_pred[i] == true_class else 'crimson'
+            marker = markers[true_class]
+            ax.scatter(
+                X_test[i, 0],
+                X_test[i, 1],
+                marker=marker,
+                c=color,
+                s=60,
+                edgecolor='black' if marker == 'o' else None,
+                linewidth=0.5
+            )
+        if row_idx == 0:
+            ax.set_title(classifier_names[col_idx], fontsize=12, pad=10)
+        if col_idx == 0:
+            ax.set_ylabel(dataset_names[row_idx], rotation=90, fontsize=12, labelpad=15)
+plt.suptitle("Графики классификаций", fontsize=14)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
+fig2 = plt.figure(figsize=(8, 4))
+ax_table = fig2.add_subplot(111)
+ax_table.axis('off')
+table_data = [[f"{acc:.2f}" for acc in row] for row in accuracies]
+tb = plt.table(cellText=table_data,
+               rowLabels=dataset_names,
+               colLabels=classifier_names,
+               loc='center',
+               cellLoc='center',
+               bbox=[0, 0, 1, 1])
+tb.auto_set_font_size(False)
+tb.set_fontsize(12)
+tb.scale(1.2, 1.2)
+plt.suptitle("Таблица точности разных видов классификации", fontsize=14)
+plt.tight_layout()
 plt.show()
